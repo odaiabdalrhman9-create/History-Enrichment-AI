@@ -34,7 +34,6 @@ if st.button("توليد الخارطة التعليمية الاحترافية"
         st.warning("يرجى إدخال الموضوع!")
     else:
         with st.spinner("جاري تصميم الخارطة التربوية بدقة..."):
-            # هذا هو الـ Prompt الصارم الذي سيجبره على الالتزام بالعقول الخمسة
             prompt = (
                 f"بصفتك خبيراً تربوياً، صمم خارطة طريق تعليمية للمرحلة {age_group} حول موضوع '{topic}'. "
                 "التزم حصراً بنظرية هوارد غاردنر لـ 'العقول الخمسة للمستقبل' (5 Minds for the Future) وهي: "
@@ -57,7 +56,7 @@ if st.button("توليد الخارطة التعليمية الاحترافية"
             except Exception as e:
                 st.error(f"حدث خطأ: {e}")
 
-# زر التصدير (ملاحظة: يحتاج ملف خطوط لاتقان العربية، هذا كود مبدئي للتصدير)
+# ميزة التصدير
 if 'result' in st.session_state:
     if st.button("تصدير النتائج كملف PDF"):
         pdf_file = "history_plan.pdf"
@@ -68,4 +67,4 @@ if 'result' in st.session_state:
         with open(pdf_file, "rb") as f:
             st.download_button("اضغط لتحميل الملف", f, file_name="history_plan.pdf")
 
-st.markdown("<div class='footer'>المطور: عدي عبد الرحمن</div>", unsafe_allow_
+st.markdown("<div class='footer'>المطور: عدي عبد الرحمن</div>", unsafe_allow_html=True)
