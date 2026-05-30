@@ -1,10 +1,8 @@
 import streamlit as st
 from groq import Groq
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
 
 # إعداد الصفحة
-st.set_page_config(page_title="مختبر العقول الخمسة", layout="wide")
+st.set_page_config(page_title="مؤرخ المستقبل", layout="wide")
 
 # إعداد الـ Client
 try:
@@ -13,58 +11,38 @@ except:
     st.error("يرجى ضبط GROQ_API_KEY في إعدادات Secrets.")
     st.stop()
 
-# التنسيق البصري الاحترافي
-st.markdown("""
-    <style>
-    .stApp {background-color: #f8f9fa;}
-    .card {padding: 25px; border-radius: 12px; background-color: #ffffff; border-left: 6px solid #0056b3; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 25px;}
-    .title-box {text-align: center; color: #0056b3; margin-bottom: 40px;}
-    .footer {text-align: center; margin-top: 60px; color: #6c757d; font-weight: bold;}
-    </style>
-""", unsafe_allow_html=True)
+st.title("مؤرخ المستقبل (Future Historian)")
+st.subheader("تصميم بيئة التعلم التاريخي القائمة على العقول الخمسة")
 
-st.markdown("<div class='title-box'><h1>مختبر العقول الخمسة</h1><p>أداة هندسة المناهج التاريخية</p></div>", unsafe_allow_html=True)
+# تبويبات التطبيق
+tab1, tab2, tab3 = st.tabs(["تصميم المهام", "تحليل النقد البنّاء", "بنك الأسئلة غير المألوفة"])
 
-col1, col2 = st.columns(2)
-topic = col1.text_input("الموضوع التاريخي:")
-age_group = col2.selectbox("المرحلة الدراسية:", ["ابتدائية", "إعدادية", "ثانوية"])
+with tab1:
+    col1, col2 = st.columns(2)
+    topic = col1.text_input("الموضوع التاريخي:")
+    time_limit = col2.text_input("الوقت المخصص (مثال: 45 دقيقة):")
+    
+    if st.button("توليد الأنشطة الإثرائية"):
+        prompt = f"""
+        صمم أنشطة تعليمية لموضوع '{topic}' بزمن {time_limit} بناءً على عقول غاردنر الخمسة.
+        لكل عقل: 1. الهدف التربوي، 2. النشاط الإثرائي، 3. معايير التقييم.
+        """
+        response = client.chat.completions.create(messages=[{"role": "user", "content": prompt}], model="llama-3.3-70b-versatile")
+        st.info(response.choices[0].message.content)
 
-if st.button("توليد الخارطة التعليمية الاحترافية"):
-    if not topic:
-        st.warning("يرجى إدخال الموضوع!")
-    else:
-        with st.spinner("جاري تصميم الخارطة التربوية بدقة..."):
-            prompt = (
-                f"بصفتك خبيراً تربوياً، صمم خارطة طريق تعليمية للمرحلة {age_group} حول موضوع '{topic}'. "
-                "التزم حصراً بنظرية هوارد غاردنر لـ 'العقول الخمسة للمستقبل' (5 Minds for the Future) وهي: "
-                "1. العقل المنضبط (Disciplined Mind) 2. العقل المركب (Synthesizing Mind) 3. العقل المبدع (Creating Mind) 4. العقل المحترم (Respectful Mind) 5. العقل الأخلاقي (Ethical Mind). "
-                "لكل عقل، قدم الفقرات التالية فقط: 1. الهدف التربوي 2. النشاط التفاعلي 3. أداة التقييم. "
-                "تحذير هام: لا تستخدم الذكاءات المتعددة، ولا العقول اللغوية أو الرياضية أو الموسيقية. التزم فقط بالعقول الخمسة للمستقبل."
-            )
-            
-            try:
-                response = client.chat.completions.create(
-                    messages=[{"role": "user", "content": prompt}],
-                    model="llama-3.3-70b-versatile"
-                )
-                res_text = response.choices[0].message.content
-                st.session_state['result'] = res_text
-                
-                # عرض النتيجة
-                st.markdown(f"<div class='card'>{res_text}</div>", unsafe_allow_html=True)
-                
-            except Exception as e:
-                st.error(f"حدث خطأ: {e}")
+with tab2:
+    st.write("أدخل إجابة الطالب لتقديم تغذية راجعة من منظور العقول الخمسة:")
+    student_ans = st.text_area("إجابة الطالب:")
+    if st.button("تحليل النقد البنّاء"):
+        feedback_prompt = f"قدم نقداً تربوياً بنّاءً لإجابة الطالب التالية حول {topic} من منظور العقول الخمسة لغاردنر: {student_ans}"
+        response = client.chat.completions.create(messages=[{"role": "user", "content": feedback_prompt}], model="llama-3.3-70b-versatile")
+        st.success(response.choices[0].message.content)
 
-# ميزة التصدير
-if 'result' in st.session_state:
-    if st.button("تصدير النتائج كملف PDF"):
-        pdf_file = "history_plan.pdf"
-        c = canvas.Canvas(pdf_file, pagesize=A4)
-        c.drawString(100, 800, "خارطة طريق مختبر العقول الخمسة")
-        c.drawString(100, 780, f"الموضوع: {topic}")
-        c.save()
-        with open(pdf_file, "rb") as f:
-            st.download_button("اضغط لتحميل الملف", f, file_name="history_plan.pdf")
+with tab3:
+    if st.button("توليد أسئلة التفكير غير المألوف"):
+        question_prompt = f"صمم 5 أسئلة تاريخية غير مألوفة وغير تقليدية حول {topic} لتحفيز التفكير الإبداعي والتحليلي."
+        response = client.chat.completions.create(messages=[{"role": "user", "content": question_prompt}], model="llama-3.3-70b-versatile")
+        st.warning(response.choices[0].message.content)
 
-st.markdown("<div class='footer'>المطور: عدي عبد الرحمن</div>", unsafe_allow_html=True)
+st.markdown("---")
+st.write("المطور: عدي عبد الرحمن")
