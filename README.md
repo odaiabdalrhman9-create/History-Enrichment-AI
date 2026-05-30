@@ -1,6 +1,4 @@
-Project Title: Adaptive History Enrichment Generator (based on Gardner's Five Minds)
-Building AI course project
-Summary
+# Adaptive History Enrichment GeneratorSummary
 An AI-powered tool that transforms history curriculum topics into diversified enrichment activities. It aligns learning tasks with Howard Gardner’s "Five Minds for the Future" (Disciplined, Synthesizing, Creating, Respectful, and Ethical) to foster holistic student development.
 Background
 History education is often limited to factual recall. Teachers struggle to design activities that go beyond memorization to cultivate the complex cognitive and ethical skills required for the future. My motivation is to automate the creation of pedagogically rich activities that challenge students to think across disciplines and value systems.
