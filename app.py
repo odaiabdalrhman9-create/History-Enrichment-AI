@@ -1,13 +1,16 @@
 import streamlit as st
+from groq import Groq
 
-# إعداد الصفحة لتكون واسعة وتدعم التنسيق
+# إعداد الصفحة لتكون واسعة
 st.set_page_config(page_title="مولد إثراء التاريخ", layout="wide")
+
+# إعداد مفتاح API من الإعدادات الآمنة (Secrets)
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 # كود CSS لتجميل الواجهة والبطاقات
 st.markdown("""
     <style>
-    .main {background-color: #0e1117;}
-    .stApp {color: white;}
+    .stApp {background-color: #0e1117; color: white;}
     .card {
         padding: 20px;
         border-radius: 15px;
@@ -15,16 +18,17 @@ st.markdown("""
         border: 1px solid #333;
         margin: 10px;
         text-align: center;
-        min-height: 180px;
+        min-height: 250px;
+        color: white;
     }
-    .footer {text-align: center; margin-top: 50px; color: #888; font-size: 0.9em;}
+    .footer { text-align: center; margin-top: 50px; color: #888; font-size: 0.9em; }
     </style>
 """, unsafe_allow_html=True)
 
-# الواجهة العربية
+# العنوان
 st.title("مولد إثراء التاريخ")
 st.subheader("ستوديو تصميم الذكاء الاصطناعي - عقول غاردنر الخمسة")
-st.write("توليد أنشطة إثراء تاريخي متعددة الأوجه لمنهج المطور: **عدي عبد الرحمن**")
+st.write("توليد أنشطة إثراء تاريخي متعددة الأوجه للمطور: **عدي عبد الرحمن**")
 
 # المدخلات
 col1, col2 = st.columns(2)
@@ -35,16 +39,6 @@ with col2:
 
 if st.button("توليد النشاط"):
     if topic:
-        st.success(f"جاري تصميم الأنشطة للمرحلة الـ {age_group} حول: {topic}")
-        
-        # تقسيم البطاقات مع التعديلات التربوية
-        cols = st.columns(5)
-        minds = ["المنضبط", "المركب", "المبدع", "المحترم", "الأخلاقي"]
-        for i, col in enumerate(cols):
-            with col:
-                st.markdown(f"<div class='card'><b>العقل {minds[i]}</b><br><br>...جارِ التوليد...</div>", unsafe_allow_html=True)
-    else:
-        st.warning("يرجى إدخال موضوع أولاً!")
-
-# التذييل
-st.markdown("<div class='footer'>المطور: عدي عبد الرحمن</div>", unsafe_allow_html=True)
+        with st.spinner("جاري تصميم الأنشطة بواسطة الذكاء الاصطناعي..."):
+            # طلب من Groq
+            prompt = f"صمم 5 أنشطة تعليمية تاريخية حول {topic} للمرحلة {age_group} بناءً
