@@ -1,53 +1,59 @@
 import streamlit as st
 from groq import Groq
+from fpdf import FPDF
 
 # إعداد الصفحة
-st.set_page_config(page_title="مولد إثراء التاريخ", layout="wide")
+st.set_page_config(page_title="مختبر العقول الخمسة", layout="wide")
 
-# إعداد الـ Client
+# إعداد Client
 try:
     client = Groq(api_key=st.secrets["GROQ_API_KEY"])
-except Exception:
-    st.error("تأكد من إضافة GROQ_API_KEY في إعدادات Secrets.")
+except:
+    st.error("يرجى ضبط GROQ_API_KEY في الـ Secrets.")
     st.stop()
 
-# التنسيق
+# التنسيق البصري (تصميم تعليمي هادئ)
 st.markdown("""
-<style>
-.stApp {background-color: #0e1117; color: white;}
-.card {padding: 20px; border-radius: 15px; background-color: #1e2530; border: 1px solid #333; margin: 10px; text-align: center; color: white; min-height: 200px;}
-.footer {text-align: center; margin-top: 50px; color: #888;}
-</style>
+    <style>
+    .stApp {background-color: #f8f9fa;}
+    .card {padding: 20px; border-radius: 10px; background-color: #ffffff; border-left: 5px solid #0056b3; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px;}
+    .title-box {text-align: center; color: #0056b3; margin-bottom: 30px;}
+    .footer {text-align: center; margin-top: 50px; color: #6c757d;}
+    </style>
 """, unsafe_allow_html=True)
 
-st.title("مولد إثراء التاريخ")
-st.subheader("ستوديو تصميم الذكاء الاصطناعي - عقول غاردنر الخمسة")
+st.markdown("<div class='title-box'><h1>مختبر العقول الخمسة</h1><p>تصميم استراتيجيات التعلم التاريخي</p></div>", unsafe_allow_html=True)
 
 col1, col2 = st.columns(2)
-topic = col1.text_input("أدخل الموضوع التاريخي:")
-age_group = col2.selectbox("اختر المرحلة الدراسية:", ["ابتدائية", "إعدادية", "ثانوية"])
+topic = col1.text_input("الموضوع التاريخي:")
+age_group = col2.selectbox("المرحلة الدراسية:", ["ابتدائية", "إعدادية", "ثانوية"])
 
-if st.button("توليد النشاط"):
-    if not topic:
-        st.warning("يرجى إدخال موضوع!")
+if st.button("توليد الخارطة التعليمية"):
+    if topic:
+        with st.spinner("جاري بناء الأنشطة التربوية..."):
+            prompt = (f"صمم خارطة طريق تعليمية للمرحلة {age_group} حول {topic} بناءً على نظرية هوارد غاردنر للعقول الخمسة. "
+                      "لكل عقل (المنضبط، المركب، المبدع، المحترم، الأخلاقي) حدد: 1. الهدف التربوي 2. النشاط التفاعلي 3. أداة التقييم. "
+                      "يجب أن تكون الإجابة مفصلة ومهنية.")
+            
+            response = client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model="llama-3.3-70b-versatile"
+            )
+            res_text = response.choices[0].message.content
+            st.session_state['result'] = res_text
+            st.markdown(f"<div class='card'>{res_text}</div>", unsafe_allow_html=True)
+            
+            # ميزة التصدير لـ PDF
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
+            pdf.cell(200, 10, txt=f"Strategy for: {topic}", ln=True, align='C')
+            pdf.multi_cell(0, 10, txt=res_text.encode('latin-1', 'replace').decode('latin-1'))
+            pdf_output = "history_plan.pdf"
+            pdf.output(pdf_output)
+            with open(pdf_output, "rb") as f:
+                st.download_button("تحميل الخطة كـ PDF", f, file_name="history_plan.pdf")
     else:
-        with st.spinner("جاري التوليد باستخدام أحدث نموذج..."):
-            try:
-                prompt = f"صمم 5 أنشطة تاريخية عن {topic} للمرحلة {age_group} بناءً على عقول غاردنر الخمسة. أجب في 5 نقاط مختصرة."
-                
-                # استخدام النموذج الجديد المدعوم
-                response = client.chat.completions.create(
-                    messages=[{"role": "user", "content": prompt}],
-                    model="llama-3.3-70b-versatile"
-                )
-                
-                res_text = response.choices[0].message.content
-                activities = res_text.split('\n')
-                
-                cols = st.columns(5)
-                minds = ["المنضبط", "المركب", "المبدع", "المحترم", "الأخلاقي"]
-                for i, col in enumerate(cols):
-                    with col:
-                        st.markdown(f"<div class='card'><b>{minds[i]}</b><br><br>{activities[i] if i<len(activities) else '...'}</div>", unsafe_allow_html=True)
-            except Exception as e:
-                st.error(f"خطأ في الاتصال بالنموذج: {e}")
+        st.warning("أدخل موضوعاً للبدء!")
+
+st.markdown("<div class='footer'>المطور: عدي عبد الرحمن</div>", unsafe_allow_html=True)
