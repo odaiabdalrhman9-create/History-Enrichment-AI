@@ -1,128 +1,169 @@
 import streamlit as st
 from groq import Groq
 
-# 1. إعداد الصفحة وتنسيق الهوية البصرية (Professional Educational UI)
-st.set_page_config(page_title="مؤرخ المستقبل - Future Historian", layout="wide")
+# 1. إعدادات الهوية البصرية والجمالية (RPG & Professional UI)
+st.set_page_config(page_title="مؤرخ المستقبل | Future Historian", layout="wide", page_icon="📜")
 
-# إعداد الـ Client للذكاء الاصطناعي
+# إعداد العميل
 try:
     client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 except:
-    st.error("خطأ: يرجى ضبط GROQ_API_KEY في إعدادات Secrets.")
+    st.error("يرجى ضبط GROQ_API_KEY في إعدادات Secrets.")
     st.stop()
 
-# 2. تصميم الواجهة باستخدام CSS (ألوان تربوية: أزرق ملكي، أبيض، رمادي هادئ)
+# تصميم الواجهة باستخدام CSS
 st.markdown("""
     <style>
-    .stApp {background-color: #fcfcfc;}
-    .main-title {text-align: center; color: #1e3a8a; font-size: 45px; font-weight: bold; margin-bottom: 5px;}
-    .sub-title {text-align: center; color: #555; font-size: 20px; margin-bottom: 40px;}
-    .stTabs [data-baseweb="tab-list"] {gap: 24px; justify-content: center;}
-    .stTabs [data-baseweb="tab"] {background-color: #f1f5f9; border-radius: 8px; padding: 10px 20px; color: #1e3a8a;}
-    .stTabs [aria-selected="true"] {background-color: #1e3a8a !important; color: white !important;}
-    .result-card {padding: 30px; border-radius: 15px; background-color: #ffffff; border-right: 8px solid #1e3a8a; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-top: 20px;}
-    .footer {text-align: center; margin-top: 80px; padding: 20px; color: #64748b; border-top: 1px solid #e2e8f0; font-family: 'Arial';}
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+    
+    html, body, [class*="css"]  {
+        font-family: 'Cairo', sans-serif;
+        background-color: #f0f2f6;
+    }
+    .main-header {
+        background: linear-gradient(90deg, #1e3a8a 0%, #10b981 100%);
+        padding: 40px;
+        border-radius: 15px;
+        color: white;
+        text-align: center;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .quest-card {
+        background-color: white;
+        padding: 25px;
+        border-radius: 15px;
+        border-right: 10px solid #10b981;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
+    .badge-box {
+        display: inline-block;
+        padding: 10px 20px;
+        background: #fef3c7;
+        border: 2px solid #f59e0b;
+        border-radius: 50px;
+        color: #92400e;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+    .stTabs [data-baseweb="tab-list"] { gap: 10px; }
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
+        background-color: #ffffff;
+        border-radius: 10px 10px 0 0;
+        border: 1px solid #e2e8f0;
+    }
     </style>
 """, unsafe_allow_html=True)
 
-# 3. الهيدر (العنوان واسم التطبيق)
-st.markdown("<div class='main-title'>مؤرخ المستقبل (Future Historian)</div>", unsafe_allow_html=True)
-st.markdown("<div class='sub-title'>بيئة هندسة التعلم التاريخي القائمة على العقول الخمسة للمستقبل</div>", unsafe_allow_html=True)
+# 2. الهيكل الرئيسي للتطبيق
+st.markdown("""
+    <div class='main-header'>
+        <h1>📜 مؤرخ المستقبل: رحلة العقول الخمسة</h1>
+        <p>قم بتحويل التاريخ إلى مهمة استكشافية عالمية</p>
+    </div>
+""", unsafe_allow_html=True)
 
-# 4. الحقول الأساسية (تظهر في جميع التبويبات لضمان استمرارية الموضوع)
-col1, col2 = st.columns([2, 1])
-with col1:
-    topic = st.text_input("📍 أدخل الموضوع التاريخي (مثال: الدولة المملوكية):", placeholder="اكتب الموضوع هنا...")
-with col2:
-    age_group = st.selectbox("🎓 المرحلة الدراسية:", ["ابتدائية", "إعدادية", "ثانوية"])
+# إدارة حالة التطبيق (للحفاظ على التقدم والشارات)
+if 'badges' not in st.session_state:
+    st.session_state['badges'] = []
 
-# 5. تبويبات التطبيق الرئيسية
-tab1, tab2, tab3 = st.tabs(["📋 تصميم الأنشطة الإثرائية", "🔍 تحليل النقد البنّاء", "💡 بنك الأسئلة غير المألوفة"])
-
-# --- التبويب الأول: تصميم الأنشطة ---
-with tab1:
-    st.write("استخدم هذا القسم لتصميم مهام تعليمية تعمق التفكير التاريخي.")
-    if st.button("توليد الأنشطة الإثرائية"):
-        if not topic:
-            st.warning("يرجى إدخال الموضوع أولاً!")
-        else:
-            with st.spinner("جاري تصميم الأنشطة بناءً على المرجعية الأكاديمية..."):
-                prompt = f"""
-                بصفتك خبيراً في التربية التاريخية، صمم أنشطة إثرائية للمرحلة {age_group} حول موضوع '{topic}' 
-                بناءً حصراً على 'العقول الخمسة للمستقبل' لهوارد غاردنر (2007) والتعريفات التالية:
-                
-                1. العقل المنضبط: تدريب الطلاب على أدوات المؤرخ (تحليل الوثائق، تقييم الموثوقية، استكشاف السياقات والدوافع).
-                2. العقل التركيبي: ربط المفاهيم والوقائع عبر دمج مصادر متنوعة (نصوص، خرائط، وسائط رقمية) لاكتشاف الروابط الكلية.
-                3. العقل المبدع: تفعيل 'التخيل التاريخي' وطرح تساؤلات افتراضية (ماذا لو...) لتحويل الدرس لمشكلة مفتوحة.
-                4. العقل المحترم: إدارة نقاشات قائمة على الحوار وتقبل الرأي الآخر وتوظيف المواقف التي تظهر التعدد الحضاري.
-                5. العقل الأخلاقي: تأمل الأبعاد الأخلاقية للأحداث (العدالة، المسؤولية) وتشكيل الضمير الإنساني الواعي بالحاضر.
-                
-                تحذير صارم: لا تستخدم الذكاءات المتعددة (لغوي، منطقي، موسيقي.. إلخ). 
-                المخرجات يجب أن تكون: (الهدف التربوي، النشاط الإثرائي، أداة التقييم) لكل عقل.
-                """
-                try:
-                    response = client.chat.completions.create(messages=[{"role": "user", "content": prompt}], model="llama-3.3-70b-versatile")
-                    st.markdown(f"<div class='result-card'>{response.choices[0].message.content}</div>", unsafe_allow_html=True)
-                except Exception as e:
-                    st.error(f"حدث خطأ في الاتصال: {e}")
-
-# --- التبويب الثاني: تحليل النقد البنّاء ---
-with tab2:
-    st.write("حلل إجابات الطلاب وقدم تغذية راجعة تربوية تعزز عقول المستقبل.")
-    student_ans = st.text_area("ألصق إجابة الطالب هنا:")
+# 3. المدخلات الأساسية
+with st.sidebar:
+    st.image("https://cdn-icons-png.flaticon.com/512/2682/2682065.png", width=100)
+    st.title("إعدادات الرحلة")
+    topic = st.text_input("📍 الموضوع التاريخي:", placeholder="مثلاً: الدولة المملوكية")
+    age_group = st.selectbox("👥 الفئة المستهدفة:", ["ابتدائية", "إعدادية", "ثانوية"])
+    quest_level = st.select_slider("⚔️ مستوى الصعوبة:", options=["مبتدئ", "خبير", "مؤرخ عظيم"])
     
-    if st.button("تحليل النقد البنّاء"):
-        if not topic or not student_ans:
-            st.warning("يرجى التأكد من إدخال الموضوع وإجابة الطالب.")
-        else:
-            with st.spinner("جاري تشريح الإجابة تربوياً..."):
-                feedback_prompt = f"""
-                بصفتك خبيراً تربوياً، قدم تحليلاً ونقداً بناءً لإجابة الطالب التالية حول موضوع '{topic}'.
-                يجب أن يكون النقد قائماً حصراً على 'العقول الخمسة للمستقبل' (المنضبط، التركيبي، المبدع، المحترم، الأخلاقي).
-                
-                المطلوب:
-                - تقييم الإجابة من منظور كل عقل من العقول الخمسة (بناءً على مفاهيم التفكير التاريخي).
-                - تقديم نصائح عملية للطالب لتطوير تفكيره التاريخي في هذا الموضوع تحديداً.
-                
-                تحذير: ممنوع منعاً باتاً استخدام مصطلحات النقد (اللغوي، المنطقي، الرياضي، الموسيقي، الحركي). 
-                اجعل التحليل أكاديمياً ومرتبطاً بالموضوع التاريخي المذكور.
-                إجابة الطالب هي: {student_ans}
-                """
-                try:
-                    response = client.chat.completions.create(messages=[{"role": "user", "content": feedback_prompt}], model="llama-3.3-70b-versatile")
-                    st.markdown(f"<div class='result-card'>{response.choices[0].message.content}</div>", unsafe_allow_html=True)
-                except Exception as e:
-                    st.error(f"حدث خطأ: {e}")
+    st.info(f"المستوى الحالي: {quest_level}")
+    if st.session_state['badges']:
+        st.write("🏆 أوسمتك المحققة:")
+        for b in set(st.session_state['badges']):
+            st.markdown(f"✅ {b}")
 
-# --- التبويب الثالث: بنك الأسئلة ---
-with tab3:
-    st.write("ولد أسئلة تحفز التفكير النقدي العميق بعيداً عن الحفظ والاستظهار.")
-    if st.button("توليد أسئلة التفكير التاريخي"):
+# 4. التبويبات الهجينة (معلم + طالب)
+tab1, tab2, tab3, tab4 = st.tabs(["🎮 لوحة المهمات (Quests)", "🔬 مختبر التحليل", "💡 مخزن الأسئلة", "📜 سجل الإنجاز"])
+
+# --- التبويب الأول: لوحة المهمات (نمط الطالب والمعلم) ---
+with tab1:
+    st.subheader("قم بتوليد " + quest_level + " لموضوع " + topic)
+    if st.button("إطلاق المهمة التاريخية 🚀"):
         if not topic:
-            st.warning("يرجى إدخال الموضوع أولاً!")
+            st.warning("أدخل موضوعاً لتبدأ الرحلة!")
         else:
-            with st.spinner(f"جاري صياغة أسئلة غير مألوفة حول {topic}..."):
-                q_prompt = f"""
-                صمم 5 أسئلة تاريخية 'غير مألوفة' ومحفزة للتفكير النقدي حول موضوع '{topic}' حصراً.
-                يجب أن تخدم الأسئلة تنمية العقول الخمسة:
-                - أسئلة افتراضية (ماذا لو..).
-                - أسئلة نقدية للمصادر والدوافع.
-                - أسئلة ربط حضاري كلي.
-                - أسئلة حول الأبعاد الأخلاقية والقيمية للحدث.
+            with st.spinner("جاري بناء عالم المهمة..."):
+                prompt = f"""
+                بصفتك مصمم ألعاب تعليمية وخبير تاريخ، صمم 'مهمة تاريخية' (Quest) لموضوع '{topic}' للمرحلة {age_group} بمستوى '{quest_level}'.
+                يجب أن تشرك المهمة الطالب في الأدوار التالية بناءً على العقول الخمسة لغاردنر:
+                1. مهمة العقل المنضبط: 'المحقق التاريخي' (تحليل وثيقة أو مصدر).
+                2. مهمة العقل التركيبي: 'مهندس الروابط' (ربط الحدث بمتغيرات أخرى).
+                3. مهمة العقل المبدع: 'المتخيل التاريخي' (سيناريو ماذا لو).
+                4. مهمة العقل المحترم: 'دبلوماسي الحضارات' (حوار وتقبل الآخر).
+                5. مهمة العقل الأخلاقي: 'حارس القيم' (اتخاذ قرار أخلاقي تجاه الحدث).
                 
-                تحذير: لا تولد أسئلة عامة عن التاريخ. يجب أن تكون الأسئلة مرتبطة ارتباطاً وثيقاً بـ '{topic}'.
+                اجعل الأسلوب مشوقاً (RPG Style) واذكر في نهاية كل مهمة اسم 'الوسام' الذي سيحصل عليه الطالب.
+                تحذير: لا تذكر الذكاءات المتعددة. التزم بالعقول الخمسة للمستقبل فقط.
                 """
-                try:
-                    response = client.chat.completions.create(messages=[{"role": "user", "content": q_prompt}], model="llama-3.3-70b-versatile")
-                    st.markdown(f"<div class='result-card'>{response.choices[0].message.content}</div>", unsafe_allow_html=True)
-                except Exception as e:
-                    st.error(f"حدث خطأ: {e}")
+                res = client.chat.completions.create(messages=[{"role": "user", "content": prompt}], model="llama-3.3-70b-versatile")
+                result = res.choices[0].message.content
+                st.markdown(f"<div class='quest-card'>{result}</div>", unsafe_allow_html=True)
+                st.session_state['last_quest'] = result
 
-# الفوتر (التوقيع والمرجع)
+# --- التبويب الثاني: مختبر التحليل (نمط المعلم) ---
+with tab2:
+    st.subheader("تحليل إجابة الطالب (نقد بناء)")
+    student_input = st.text_area("ألصق إجابة الطالب هنا ليتم تشريحها بناءً على العقول الخمسة:")
+    if st.button("تشغيل التحليل المخبري 🔍"):
+        if not student_input:
+            st.error("لا توجد إجابة لتحليلها!")
+        else:
+            with st.spinner("جاري التحليل الأكاديمي..."):
+                feedback_prompt = f"""
+                حلل إجابة الطالب التالية حول موضوع '{topic}' بناءً على معايير العقول الخمسة للتفكير التاريخي:
+                - العقل المنضبط (المنهجية).
+                - العقل التركيبي (الربط).
+                - العقل المبدع (الابتكار).
+                - العقل المحترم (الانفتاح).
+                - العقل الأخلاقي (الضمير).
+                
+                ممنوع استخدام مصطلحات الذكاءات المتعددة (لغوي، رياضي.. إلخ). 
+                وجه الطالب كيف يطور تفكيره التاريخي في المرة القادمة.
+                إجابة الطالب: {student_input}
+                """
+                res = client.chat.completions.create(messages=[{"role": "user", "content": feedback_prompt}], model="llama-3.3-70b-versatile")
+                st.info(res.choices[0].message.content)
+                # محاكاة منح وسام بناءً على جودة الإجابة
+                st.session_state['badges'].append("وسام المحلل الناقد")
+
+# --- التبويب الثالث: مخزن الأسئلة ---
+with tab3:
+    st.subheader("أسئلة التفكير غير المألوف")
+    if st.button("توليد أسئلة التحدي 💡"):
+        with st.spinner("جاري استخراج أسئلة من خارج الصندوق..."):
+            q_prompt = f"صمم 5 أسئلة تاريخية غير مألوفة وعميقة حول موضوع '{topic}' تهدف لاستفزاز التفكير النقدي والإبداعي لدى الطلاب."
+            res = client.chat.completions.create(messages=[{"role": "user", "content": q_prompt}], model="llama-3.3-70b-versatile")
+            st.warning(res.choices[0].message.content)
+
+# --- التبويب الرابع: سجل الإنجاز ---
+with tab4:
+    st.subheader("📜 سجل رحلتك التاريخية")
+    if not st.session_state['badges']:
+        st.write("لم تبدأ رحلتك بعد.. أكمل المهمات للحصول على الأوسمة!")
+    else:
+        cols = st.columns(3)
+        for i, badge in enumerate(set(st.session_state['badges'])):
+            cols[i % 3].markdown(f"<div class='badge-box'>🏆 {badge}</div>", unsafe_allow_html=True)
+    
+    if 'last_quest' in st.session_state:
+        with st.expander("عرض آخر مهمة قمت بتوليدها"):
+            st.write(st.session_state['last_quest'])
+
+# الفوتر
 st.markdown(f"""
-    <div class='footer'>
-        تطوير: <b>عدي عبد الرحمن</b> | 
-        المرجع الأكاديمي: نظرية العقول الخمسة للمستقبل (هوارد غاردنر) <br>
-        <i>تم التصميم لتعزيز مهارات التفكير التاريخي والاستقصاء المنهجي</i>
+    <div style='text-align: center; margin-top: 50px; padding: 20px; color: #64748b;'>
+        تطوير: <b>عُدي عبد الرحمن</b> | تطبيق 'مؤرخ المستقبل' V2.0 <br>
+        قائم على نظرية العقول الخمسة للمستقبل - هوارد غاردنر
     </div>
 """, unsafe_allow_html=True)
