@@ -4,45 +4,46 @@ from groq import Groq
 # إعداد الصفحة
 st.set_page_config(page_title="مؤرخ المستقبل", layout="wide")
 
-# إعداد الـ Client
 try:
     client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 except:
-    st.error("يرجى ضبط GROQ_API_KEY في إعدادات Secrets.")
+    st.error("يرجى ضبط GROQ_API_KEY.")
     st.stop()
 
 st.title("مؤرخ المستقبل (Future Historian)")
-st.subheader("تصميم بيئة التعلم التاريخي القائمة على العقول الخمسة")
 
-# تبويبات التطبيق
-tab1, tab2, tab3 = st.tabs(["تصميم المهام", "تحليل النقد البنّاء", "بنك الأسئلة غير المألوفة"])
+tab1, tab2, tab3 = st.tabs(["تصميم الأنشطة الإثرائية", "تحليل النقد البنّاء", "بنك الأسئلة"])
 
 with tab1:
-    col1, col2 = st.columns(2)
-    topic = col1.text_input("الموضوع التاريخي:")
-    time_limit = col2.text_input("الوقت المخصص (مثال: 45 دقيقة):")
-    
+    topic = st.text_input("الموضوع التاريخي:")
     if st.button("توليد الأنشطة الإثرائية"):
+        # الـ Prompt المحدث بناءً على المحتوى الأكاديمي الدقيق
         prompt = f"""
-        صمم أنشطة تعليمية لموضوع '{topic}' بزمن {time_limit} بناءً على عقول غاردنر الخمسة.
-        لكل عقل: 1. الهدف التربوي، 2. النشاط الإثرائي، 3. معايير التقييم.
+        بصفتك خبيراً في التربية التاريخية، صمم أنشطة إثرائية للموضوع '{topic}' بناءً على 'العقول الخمسة للمستقبل' لهوارد غاردنر كما يلي:
+        1. العقل المنضبط: ركز على تدريب الطلاب على أدوات المؤرخ (تحليل الوثائق، تقييم الموثوقية، استكشاف الدوافع).
+        2. العقل التركيبي: ركز على ربط المفاهيم عبر دمج مصادر متنوعة (نصوص، خرائط، وسائط رقمية) لاكتشاف الروابط الكلية.
+        3. العقل المبدع: ركز على 'التخيل التاريخي' وطرح تساؤلات افتراضية (ماذا لو...) لتحويل الدرس لمشكلة مفتوحة.
+        4. العقل المحترم: ركز على إدارة النقاشات القائمة على الحوار وتقبل الآخر والتعدد الحضاري.
+        5. العقل الأخلاقي: ركز على تأمل الأبعاد الأخلاقية والقيم الإنسانية (العدالة، المسؤولية) وتشكيل الضمير الإنساني.
+        
+        ممنوع منعاً باتاً ذكر 'الذكاءات المتعددة' أو العقول (اللغوية، الرياضية، الموسيقية). التزم فقط بالتعريفات أعلاه.
         """
         response = client.chat.completions.create(messages=[{"role": "user", "content": prompt}], model="llama-3.3-70b-versatile")
-        st.info(response.choices[0].message.content)
+        st.markdown(response.choices[0].message.content)
 
 with tab2:
-    st.write("أدخل إجابة الطالب لتقديم تغذية راجعة من منظور العقول الخمسة:")
+    st.write("أدخل إجابة الطالب لتحليلها تربوياً بناءً على العقول الخمسة:")
     student_ans = st.text_area("إجابة الطالب:")
     if st.button("تحليل النقد البنّاء"):
-        feedback_prompt = f"قدم نقداً تربوياً بنّاءً لإجابة الطالب التالية حول {topic} من منظور العقول الخمسة لغاردنر: {student_ans}"
+        feedback_prompt = f"قدم نقداً تربوياً بنّاءً بناءً على نظرية العقول الخمسة لغاردنر لإجابة الطالب: {student_ans} حول {topic}."
         response = client.chat.completions.create(messages=[{"role": "user", "content": feedback_prompt}], model="llama-3.3-70b-versatile")
         st.success(response.choices[0].message.content)
 
 with tab3:
-    if st.button("توليد أسئلة التفكير غير المألوف"):
-        question_prompt = f"صمم 5 أسئلة تاريخية غير مألوفة وغير تقليدية حول {topic} لتحفيز التفكير الإبداعي والتحليلي."
-        response = client.chat.completions.create(messages=[{"role": "user", "content": question_prompt}], model="llama-3.3-70b-versatile")
+    if st.button("توليد أسئلة التفكير التاريخي"):
+        q_prompt = f"صمم 5 أسئلة تاريخية غير مألوفة لموضوع '{topic}' تحفز التفكير النقدي بعيداً عن الاستظهار."
+        response = client.chat.completions.create(messages=[{"role": "user", "content": q_prompt}], model="llama-3.3-70b-versatile")
         st.warning(response.choices[0].message.content)
 
-st.markdown("---")
-st.write("المطور: عدي عبد الرحمن")
+st.write("---")
+st.write("المطور: عدي عبد الرحمن | مرجع: العقول الخمسة للمستقبل - هوارد غاردنر")
