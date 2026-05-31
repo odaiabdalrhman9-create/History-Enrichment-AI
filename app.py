@@ -5,7 +5,7 @@ import ast
 from groq import Groq
 
 # إعداد الصفحة
-st.set_page_config(page_title="مصمم الأنشطة الإثرائي الذكي", layout="wide", page_icon="⚡")
+st.set_page_config(page_title="مصمم الأنشطة الإثرائية الذكي", layout="wide", page_icon="⚡")
 
 # إعداد الـ Client
 try:
@@ -41,27 +41,25 @@ if 'data' not in st.session_state: st.session_state.data = None
 def get_prompt(lesson, grade, strategy):
     return f"""
     أنت خبير تربوي متخصص في تصميم المناهج. صمم 3 أنشطة إثرائية لدرس '{lesson}' للمرحلة '{grade}' باستخدام استراتيجية '{strategy}'.
-    القواعد: مخرج JSON فقط، لا أسطر جديدة داخل النصوص، هياكل منظمة.
-    {{
-        "نشاط1": {{"اسم": "...", "الهدف": "...", "الخطوات": ["خ1", "خ2"], "الأدوات": "...", "تقويم": "..."}},
-        "نشاط2": {{"اسم": "...", "الهدف": "...", "الخطوات": ["خ1", "خ2"], "الأدوات": "...", "تقويم": "..."}},
-        "نشاط3": {{"اسم": "...", "الهدف": "...", "الخطوات": ["خ1", "خ2"], "الأدوات": "...", "تقويم": "..."}}
-    }}
+    تعليمات تقنية صارمة:
+    1. المخرج JSON فقط.
+    2. استخدم فقط الفواصل الإنجليزية (,) وليس الفواصل العربية (،).
+    3. لا تضع أي أسطر جديدة داخل نصوص القيم.
+    4. الهيكل:
+    {{"نشاط1": {{"اسم": "...", "الهدف": "...", "الخطوات": ["خ1", "خ2"], "الأدوات": "...", "تقويم": "..."}}, "نشاط2": {...}, "نشاط3": {...}}}
     """
 
 if st.button("🚀 توليد أنشطة إثرائية إبداعية"):
-    with st.spinner("جاري تصميم الأنشطة..."):
+    with st.spinner("جاري التصميم التربوي للأنشطة..."):
         try:
             res = client.chat.completions.create(
                 messages=[{"role": "user", "content": get_prompt(lesson_name, grade_level, strategy)}], 
                 model="llama-3.3-70b-versatile"
             )
+            raw = res.choices[0].message.content.replace("```json", "").replace("```", "").strip()
             
-            # معالجة آمنة جداً لمنع SyntaxError
-            raw = res.choices[0].message.content
-            raw = raw.replace("```json", "")
-            raw = raw.replace("```", "")
-            raw = raw.strip()
+            # معالجة وتنظيف الفواصل العربية لمنع أخطاء JSON
+            raw = raw.replace("،", ",")
             
             try:
                 st.session_state.data = json.loads(raw)
