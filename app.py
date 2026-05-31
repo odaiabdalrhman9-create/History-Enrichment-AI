@@ -27,47 +27,51 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<h1 style='text-align:center'>⚡ مصمم الأنشطة الإثرائية الذكي</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align:center'>⚡ مصمم الأنشطة الإثرائية الذكي (نسخة الخبير التربوي)</h1>", unsafe_allow_html=True)
 
-lesson_name = st.text_input("💡 اسم الدرس:", placeholder="مثال: تاريخ الدولة المملوكية")
+# المدخلات
+lesson_name = st.text_input("💡 اسم الدرس:", placeholder="مثال: تاريخ الدولة الزنكية")
+strategy = st.selectbox("🎯 اختر استراتيجية التعلم:", 
+                        ["التعلم القائم على المشكلات", "لعب الأدوار", "التفكير الناقد", "الخرائط الذهنية", "المحاكاة التاريخية"])
 grade_level = st.select_slider("🎓 المرحلة:", options=["ابتدائية", "إعدادية", "ثانوية", "جامعية"])
 
 if 'data' not in st.session_state: st.session_state.data = None
 
-# Prompt مُحكم جداً لمنع انهيار الـ JSON
-def get_prompt(lesson, grade):
+# Prompt مُطور بـ "الفلسفة التربوية"
+def get_prompt(lesson, grade, strategy):
     return f"""
-    صمم 3 أنشطة إثرائية لدرس '{lesson}' للمرحلة '{grade}'.
-    أخرج النتيجة بصيغة JSON فقط.
-    قواعد صارمة: 
-    1. لا تضف أي أسطر جديدة (\n) داخل نصوص القيم.
-    2. تأكد من إغلاق علامات التنصيص والفواصل بشكل صحيح.
-    3. الهيكل:
+    أنت خبير تربوي متخصص في تصميم المناهج. صمم 3 أنشطة إثرائية لدرس '{lesson}' للمرحلة '{grade}' باستخدام استراتيجية '{strategy}'.
+    
+    قواعد تعليمية صارمة:
+    1. ابتعد تماماً عن الأنشطة البحثية التقليدية (مثل: 'ابحث عن معلومات واكتب تقريراً').
+    2. صمم أنشطة تعتمد على مستويات التفكير العليا (التحليل، التقييم، الإبداع).
+    3. 'الخطوات' يجب أن تكون إجرائية وتفاعلية (مثال: 'حلل'، 'اقترح'، 'قارن'، 'صمم سيناريو').
+    4. 'تقويم' يجب أن يصف كيف سنقيس أداء الطالب أو فهمه العميق.
+    5. المخرج JSON فقط. لا أسطر جديدة داخل النصوص.
+    
+    الهيكل:
     {{
         "نشاط1": {{"اسم": "...", "الهدف": "...", "الخطوات": ["خ1", "خ2"], "الأدوات": "...", "تقويم": "..."}},
-        "نشاط2": {{"اسم": "...", "الهدف": "...", "الخطوات": ["خ1", "خ2"], "الأدوات": "...", "تقويم": "..."}},
-        "نشاط3": {{"اسم": "...", "الهدف": "...", "الخطوات": ["خ1", "خ2"], "الأدوات": "...", "تقويم": "..."}}
+        ...
     }}
     """
 
-if st.button("🚀 توليد الأنشطة الإثرائية"):
-    with st.spinner("جاري صياغة الأنشطة..."):
+if st.button("🚀 توليد أنشطة إثرائية إبداعية"):
+    with st.spinner("جاري تصميم الأنشطة وفق المعايير التربوية..."):
         try:
             res = client.chat.completions.create(
-                messages=[{"role": "user", "content": get_prompt(lesson_name, grade_level)}], 
+                messages=[{"role": "user", "content": get_prompt(lesson_name, grade_level, strategy)}], 
                 model="llama-3.3-70b-versatile"
             )
             raw = res.choices[0].message.content.replace("```json", "").replace("```", "").strip()
             
-            # محاولة التحويل لـ JSON، إذا فشل نستخدم ast للتعامل مع نصوص أقل صرامة
             try:
                 st.session_state.data = json.loads(raw)
             except:
-                # محاولة بديلة إذا كان التنسيق يحتوي على أخطاء بسيطة
                 st.session_state.data = ast.literal_eval(raw)
             
         except Exception as e:
-            st.error(f"حدث خطأ: تأكد من اسم الدرس. الخطأ: {e}")
+            st.error(f"حدث خطأ تربوي في صياغة الأنشطة: {e}")
 
 # عرض النتائج
 if st.session_state.data:
@@ -80,11 +84,11 @@ if st.session_state.data:
             st.subheader(f"🏷️ {act.get('اسم')}")
             c1, c2 = st.columns(2)
             with c1:
-                st.markdown(f"<div class='box box-goal'><b>🎯 الهدف:</b><br>{act.get('الهدف')}</div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='box box-goal'><b>🎯 الهدف الإثرائي:</b><br>{act.get('الهدف')}</div>", unsafe_allow_html=True)
                 st.markdown(f"<div class='box box-tools'><b>🛠 الأدوات:</b><br>{act.get('الأدوات')}</div>", unsafe_allow_html=True)
             with c2:
                 steps_html = "".join([f"<li>{s}</li>" for s in act.get('الخطوات', [])])
-                st.markdown(f"<div class='box box-steps'><b>📋 الخطوات:</b><br><ol>{steps_html}</ol></div>", unsafe_allow_html=True)
-                st.markdown(f"<div class='box box-eval'><b>✅ تقويم النشاط:</b><br>{act.get('تقويم')}</div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='box box-steps'><b>📋 خطوات الاستراتيجية ({strategy}):</b><br><ol>{steps_html}</ol></div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='box box-eval'><b>✅ التقويم البنائي:</b><br>{act.get('تقويم')}</div>", unsafe_allow_html=True)
 
 st.markdown("<div style='text-align:center; color:white; margin-top:50px;'>تطوير: عدي عبد الرحمن | ماجستير في المناهج وطرائق التدريس 🎓</div>", unsafe_allow_html=True)
