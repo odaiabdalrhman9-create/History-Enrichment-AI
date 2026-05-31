@@ -11,18 +11,24 @@ except:
     st.error("يرجى ضبط GROQ_API_KEY.")
     st.stop()
 
-# تصميم مفعم بالحيوية (ألوان زرقاء وتركوازية)
+# تصميم مفعم بالحيوية والوضوح (ألوان زرقاء وتركوازية)
 st.markdown("""
     <style>
     .stApp {
         background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
     }
     .main-header {
-        color: #ffffff; 
+        color: #ffffff !important; 
         text-align: center; 
         font-family: 'Segoe UI', sans-serif;
-        padding: 20px;
-        margin-bottom: 20px;
+        font-size: 3em;
+        margin-bottom: 30px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+    .stTextInput label {
+        color: #ffffff !important;
+        font-size: 1.2em !important;
+        font-weight: bold;
     }
     .activity-card {
         background: rgba(255, 255, 255, 0.95);
@@ -42,11 +48,11 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# العنوان
+# العنوان باللون الأبيض
 st.markdown("<h1 class='main-header'>⚡ مصمم الأنشطة الإثرائية الذكي</h1>", unsafe_allow_html=True)
 
-# المدخلات
-lesson_name = st.text_input("💡 اسم الدرس أو الموضوع:", placeholder="مثلاً: التمثيل الضوئي، التفاعلات الكيميائية، العصور التاريخية...")
+# المدخلات - مع تنسيق Label ليكون أبيض
+lesson_name = st.text_input("💡 اسم الدرس أو الموضوع:", placeholder="مثلاً: التمثيل الضوئي، التفاعلات الكيميائية...")
 grade_level = st.select_slider("🎓 المرحلة الدراسية:", options=["ابتدائية", "إعدادية", "ثانوية", "جامعية"])
 
 if st.button("🚀 توليد الأنشطة", type="primary"):
