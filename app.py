@@ -35,29 +35,35 @@ with col_in1:
 with col_in2:
     grade_level = st.select_slider("🎓 المرحلة:", options=["ابتدائية", "إعدادية", "ثانوية", "جامعية"])
 
-if 'data' not in st.session_state: st.session_state.data = None
+if 'data' not in st.session_state: 
+    st.session_state.data = None
 
 if st.button("🚀 توليد الأنشطة الإثرائية", type="primary"):
     with st.spinner("جاري صياغة الأنشطة..."):
         prompt = f"""
         صمم 3 أنشطة إثرائية لدرس '{lesson_name}' للمرحلة '{grade_level}'.
         أخرج النتيجة بتنسيق JSON فقط.
-        القيم داخل "الخطوات" يجب أن تكون نصاً يحتوي على أرقام وتسلسل عمودي باستخدام '\\n'.
+        الخطوات يجب أن تكون قائمة مرقمة (1. 2. 3.) مفصولة بعلامة '\\n'.
         {{
-            "نشاط1": {{"الهدف": "...", "الخطوات": "1. ...\n2. ...\n3. ...", "الأدوات": "..."}},
-            "نشاط2": {{"الهدف": "...", "الخطوات": "1. ...\n2. ...\n3. ...", "الأدوات": "..."}},
-            "نشاط3": {{"الهدف": "...", "الخطوات": "1. ...\n2. ...\n3. ...", "الأدوات": "..."}}
+            "نشاط1": {{"الهدف": "...", "الخطوات": "1. ...\\n2. ...\\n3. ...", "الأدوات": "..."}},
+            "نشاط2": {{"الهدف": "...", "الخطوات": "1. ...\\n2. ...\\n3. ...", "الأدوات": "..."}},
+            "نشاط3": {{"الهدف": "...", "الخطوات": "1. ...\\n2. ...\\n3. ...", "الأدوات": "..."}}
         }}
         """
         try:
-            res = client.chat.completions.create(messages=[{"role": "user", "content": prompt}], model="llama-3.3-70b-versatile")
-            content = res.choices[0].message.content.replace("```json", "").replace("
-```", "").strip()
-            # إزالة رموز التحكم غير المرئية لمنع خطأ JSON
-            content = re.sub(r'[\x00-\x1f]', '', content)
-            st.session_state.data = json.loads(content)
+            res = client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}], 
+                model="llama-3.3-70b-versatile"
+            )
+            raw_content = res.choices[0].message.content
+            
+            # تنظيف النص
+            clean_content = raw_content.replace("```json", "").replace("```", "").strip()
+            clean_content = re.sub(r'[\x00-\x1f]', '', clean_content)
+            
+            st.session_state.data = json.loads(clean_content)
         except Exception as e:
-            st.error(f"حدث خطأ في معالجة البيانات: {e}")
+            st.error(f"حدث خطأ في المعالجة: {e}")
 
 # عرض النتائج في Tabs
 if st.session_state.data:
@@ -70,10 +76,12 @@ if st.session_state.data:
                 act = st.session_state.data[key]
                 c1, c2, c3 = st.columns(3)
                 
-                with c1: st.markdown(f"<div class='box box-goal'><b>🎯 الهدف:</b><br>{act.get('الهدف', '')}</div>", unsafe_allow_html=True)
-                # استبدال \n بـ <br> لضمان ظهور الخطوات بشكل عمودي
-                steps_formatted = act.get('الخطوات', '').replace('\n', '<br>')
-                with c2: st.markdown(f"<div class='box box-steps'><b>📋 الخطوات:</b><br>{steps_formatted}</div>", unsafe_allow_html=True)
-                with c3: st.markdown(f"<div class='box box-tools'><b>🛠 الأدوات:</b><br>{act.get('الأدوات', '')}</div>", unsafe_allow_html=True)
+                with c1: 
+                    st.markdown(f"<div class='box box-goal'><b>🎯 الهدف:</b><br>{act.get('الهدف', '')}</div>", unsafe_allow_html=True)
+                with c2: 
+                    steps = act.get('الخطوات', '').replace('\n', '<br>')
+                    st.markdown(f"<div class='box box-steps'><b>📋 الخطوات:</b><br>{steps}</div>", unsafe_allow_html=True)
+                with c3: 
+                    st.markdown(f"<div class='box box-tools'><b>🛠 الأدوات:</b><br>{act.get('الأدوات', '')}</div>", unsafe_allow_html=True)
 
 st.markdown("<div class='footer'>تطوير: عدي عبد الرحمن | ماجستير في المناهج وطرائق التدريس 🎓</div>", unsafe_allow_html=True)
