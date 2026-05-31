@@ -13,16 +13,27 @@ except:
     st.error("يرجى ضبط GROQ_API_KEY في الإعدادات.")
     st.stop()
 
-# تصميم CSS مُحسن
+# تصميم CSS مُحسن لضمان وضوح الألوان
 st.markdown("""
     <style>
     .stApp { background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); }
+    
+    /* جعل العناوين والمدخلات بيضاء بالكامل */
+    h1, .stTextInput label, .stSlider label { color: #ffffff !important; }
+    
     .main-header { color: #ffffff; text-align: center; margin-bottom: 30px; }
-    .box { padding: 20px; border-radius: 15px; height: 100%; color: #ffffff; margin-bottom: 10px; line-height: 1.6; }
-    .box-goal { background: #0891b2; } 
-    .box-steps { background: #059669; } 
-    .box-tools { background: #7c3aed; } 
-    .footer { text-align: center; margin-top: 50px; color: #cbd5e1; font-weight: bold; }
+    
+    /* تنسيق التبويبات (Tabs) لتكون بيضاء وواضحة */
+    .stTabs [data-baseweb="tab-list"] { background-color: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+    .stTabs [data-baseweb="tab"] { color: #ffffff !important; font-weight: bold; }
+    
+    /* مربعات الأنشطة */
+    .box { padding: 20px; border-radius: 15px; color: #ffffff; margin-bottom: 10px; line-height: 1.6; border: 1px solid rgba(255,255,255,0.2); }
+    .box-goal { background: rgba(8, 145, 178, 0.8); } 
+    .box-steps { background: rgba(5, 150, 105, 0.8); } 
+    .box-tools { background: rgba(124, 58, 237, 0.8); } 
+    
+    .footer { text-align: center; margin-top: 50px; color: #ffffff; font-weight: bold; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -56,11 +67,8 @@ if st.button("🚀 توليد الأنشطة الإثرائية", type="primary"
                 model="llama-3.3-70b-versatile"
             )
             raw_content = res.choices[0].message.content
-            
-            # تنظيف النص
             clean_content = raw_content.replace("```json", "").replace("```", "").strip()
             clean_content = re.sub(r'[\x00-\x1f]', '', clean_content)
-            
             st.session_state.data = json.loads(clean_content)
         except Exception as e:
             st.error(f"حدث خطأ في المعالجة: {e}")
