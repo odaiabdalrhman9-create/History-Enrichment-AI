@@ -27,12 +27,12 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<h1 style='text-align:center'>⚡ مصمم الأنشطة الإثرائية الذكي (نسخة الخبير التربوي)</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align:center'>⚡ مصمم الأنشطة الإثرائية الذكي</h1>", unsafe_allow_html=True)
 
 # المدخلات
-lesson_name = st.text_input("💡 اسم الدرس:", placeholder="مثال: تاريخ الدولة الزنكية")
+lesson_name = st.text_input("💡 اسم الدرس:", placeholder="أدخل اسم الدرس هنا")
 strategy = st.selectbox("🎯 اختر استراتيجية التعلم:", 
-                        ["التعلم القائم على المشكلات", "لعب الأدوار", "التفكير الناقد", "الخرائط الذهنية", "المحاكاة التاريخية"])
+                        ["التعلم النشط", "التعلم التعاوني", "التعلم بالاستقصاء", "العصف الذهني", "حل المشكلات", "فكر-زاوج-شارك", "التعلم القائم على المشاريع"])
 grade_level = st.select_slider("🎓 المرحلة:", options=["ابتدائية", "إعدادية", "ثانوية", "جامعية"])
 
 if 'data' not in st.session_state: st.session_state.data = None
@@ -45,25 +45,27 @@ def get_prompt(lesson, grade, strategy):
     قواعد تعليمية صارمة:
     1. ابتعد تماماً عن الأنشطة البحثية التقليدية (مثل: 'ابحث عن معلومات واكتب تقريراً').
     2. صمم أنشطة تعتمد على مستويات التفكير العليا (التحليل، التقييم، الإبداع).
-    3. 'الخطوات' يجب أن تكون إجرائية وتفاعلية (مثال: 'حلل'، 'اقترح'، 'قارن'، 'صمم سيناريو').
-    4. 'تقويم' يجب أن يصف كيف سنقيس أداء الطالب أو فهمه العميق.
-    5. المخرج JSON فقط. لا أسطر جديدة داخل النصوص.
+    3. 'الخطوات' يجب أن تكون إجرائية وتفاعلية تناسب استراتيجية '{strategy}'.
+    4. 'تقويم' يجب أن يصف كيف سنقيس أداء الطالب أو فهمه العميق أثناء تنفيذ النشاط.
+    5. المخرج JSON فقط. لا أسطر جديدة داخل نصوص القيم.
     
-    الهيكل:
+    الهيكل المطلوب:
     {{
         "نشاط1": {{"اسم": "...", "الهدف": "...", "الخطوات": ["خ1", "خ2"], "الأدوات": "...", "تقويم": "..."}},
-        ...
+        "نشاط2": {{"اسم": "...", "الهدف": "...", "الخطوات": ["خ1", "خ2"], "الأدوات": "...", "تقويم": "..."}},
+        "نشاط3": {{"اسم": "...", "الهدف": "...", "الخطوات": ["خ1", "خ2"], "الأدوات": "...", "تقويم": "..."}}
     }}
     """
 
 if st.button("🚀 توليد أنشطة إثرائية إبداعية"):
-    with st.spinner("جاري تصميم الأنشطة وفق المعايير التربوية..."):
+    with st.spinner("جاري تصميم الأنشطة وفق استراتيجية " + strategy + "..."):
         try:
             res = client.chat.completions.create(
                 messages=[{"role": "user", "content": get_prompt(lesson_name, grade_level, strategy)}], 
                 model="llama-3.3-70b-versatile"
             )
-            raw = res.choices[0].message.content.replace("```json", "").replace("```", "").strip()
+            raw = res.choices[0].message.content.replace("```json", "").replace("
+```", "").strip()
             
             try:
                 st.session_state.data = json.loads(raw)
@@ -71,7 +73,7 @@ if st.button("🚀 توليد أنشطة إثرائية إبداعية"):
                 st.session_state.data = ast.literal_eval(raw)
             
         except Exception as e:
-            st.error(f"حدث خطأ تربوي في صياغة الأنشطة: {e}")
+            st.error(f"حدث خطأ في صياغة الأنشطة: {e}")
 
 # عرض النتائج
 if st.session_state.data:
@@ -88,7 +90,7 @@ if st.session_state.data:
                 st.markdown(f"<div class='box box-tools'><b>🛠 الأدوات:</b><br>{act.get('الأدوات')}</div>", unsafe_allow_html=True)
             with c2:
                 steps_html = "".join([f"<li>{s}</li>" for s in act.get('الخطوات', [])])
-                st.markdown(f"<div class='box box-steps'><b>📋 خطوات الاستراتيجية ({strategy}):</b><br><ol>{steps_html}</ol></div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='box box-steps'><b>📋 خطوات استراتيجية ({strategy}):</b><br><ol>{steps_html}</ol></div>", unsafe_allow_html=True)
                 st.markdown(f"<div class='box box-eval'><b>✅ التقويم البنائي:</b><br>{act.get('تقويم')}</div>", unsafe_allow_html=True)
 
 st.markdown("<div style='text-align:center; color:white; margin-top:50px;'>تطوير: عدي عبد الرحمن | ماجستير في المناهج وطرائق التدريس 🎓</div>", unsafe_allow_html=True)
