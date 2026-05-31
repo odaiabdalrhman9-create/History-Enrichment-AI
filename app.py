@@ -1,6 +1,7 @@
 import streamlit as st
 import json
 import re
+import ast
 from groq import Groq
 
 # إعداد الصفحة
@@ -13,7 +14,7 @@ except:
     st.error("يرجى ضبط GROQ_API_KEY في إعدادات التطبيق.")
     st.stop()
 
-# التصميم (CSS) - تصميم عصري مع تباين عالي
+# التصميم (CSS)
 st.markdown("""
     <style>
     .stApp { background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); }
@@ -28,53 +29,48 @@ st.markdown("""
 
 st.markdown("<h1 style='text-align:center'>⚡ مصمم الأنشطة الإثرائية الذكي</h1>", unsafe_allow_html=True)
 
-# المدخلات
 lesson_name = st.text_input("💡 اسم الدرس:", placeholder="مثال: تاريخ الدولة المملوكية")
 grade_level = st.select_slider("🎓 المرحلة:", options=["ابتدائية", "إعدادية", "ثانوية", "جامعية"])
 
 if 'data' not in st.session_state: st.session_state.data = None
 
-# الـ Prompt المحسن
+# Prompt مُحكم جداً لمنع انهيار الـ JSON
 def get_prompt(lesson, grade):
     return f"""
-    أنت خبير تربوي متخصص في تصميم الأنشطة الإثرائية. 
     صمم 3 أنشطة إثرائية لدرس '{lesson}' للمرحلة '{grade}'.
-    
-    تعليمات صارمة:
-    1. أخرج النتيجة بصيغة JSON فقط.
-    2. اسم النشاط يجب أن يكون إبداعياً ومهنياً (مثلاً: نشاط المستكشف، نشاط المحلل، نشاط البودكاست).
-    3. 'الخطوات' مصفوفة (Array) تحتوي على خطوات كاملة ومرتبة.
-    4. 'تقويم' نص وصفي لآلية التقويم ولا تتركه فارغاً.
-    
-    هيكل JSON المطلوب:
+    أخرج النتيجة بصيغة JSON فقط.
+    قواعد صارمة: 
+    1. لا تضف أي أسطر جديدة (\n) داخل نصوص القيم.
+    2. تأكد من إغلاق علامات التنصيص والفواصل بشكل صحيح.
+    3. الهيكل:
     {{
-        "نشاط1": {{"اسم": "نشاط المستكشف", "الهدف": "...", "الخطوات": ["خ1", "خ2"], "الأدوات": "...", "تقويم": "..."}},
-        "نشاط2": {{"اسم": "نشاط البودكاست", "الهدف": "...", "الخطوات": ["خ1", "خ2"], "الأدوات": "...", "تقويم": "..."}},
-        "نشاط3": {{"اسم": "نشاط التحدي", "الهدف": "...", "الخطوات": ["خ1", "خ2"], "الأدوات": "...", "تقويم": "..."}}
+        "نشاط1": {{"اسم": "...", "الهدف": "...", "الخطوات": ["خ1", "خ2"], "الأدوات": "...", "تقويم": "..."}},
+        "نشاط2": {{"اسم": "...", "الهدف": "...", "الخطوات": ["خ1", "خ2"], "الأدوات": "...", "تقويم": "..."}},
+        "نشاط3": {{"اسم": "...", "الهدف": "...", "الخطوات": ["خ1", "خ2"], "الأدوات": "...", "تقويم": "..."}}
     }}
     """
 
 if st.button("🚀 توليد الأنشطة الإثرائية"):
-    with st.spinner("جاري صياغة الأنشطة الإبداعية..."):
+    with st.spinner("جاري صياغة الأنشطة..."):
         try:
             res = client.chat.completions.create(
                 messages=[{"role": "user", "content": get_prompt(lesson_name, grade_level)}], 
                 model="llama-3.3-70b-versatile"
             )
+            raw = res.choices[0].message.content.replace("```json", "").replace("```", "").strip()
             
-            raw = res.choices[0].message.content
-            raw = raw.replace("```json", "").replace("```", "").strip()
-            
-            # تنظيف الرموز غير المرئية لمنع الأخطاء البرمجية
-            clean = re.sub(r'[\x00-\x1f]', '', raw)
-            st.session_state.data = json.loads(clean)
+            # محاولة التحويل لـ JSON، إذا فشل نستخدم ast للتعامل مع نصوص أقل صرامة
+            try:
+                st.session_state.data = json.loads(raw)
+            except:
+                # محاولة بديلة إذا كان التنسيق يحتوي على أخطاء بسيطة
+                st.session_state.data = ast.literal_eval(raw)
             
         except Exception as e:
-            st.error(f"حدث خطأ في معالجة البيانات: {e}")
+            st.error(f"حدث خطأ: تأكد من اسم الدرس. الخطأ: {e}")
 
 # عرض النتائج
 if st.session_state.data:
-    # إنشاء التبويبات بناءً على أسماء الأنشطة الموّلدة
     keys = list(st.session_state.data.keys())
     tabs = st.tabs([f"💡 {st.session_state.data[k].get('اسم', 'نشاط')}" for k in keys])
     
@@ -82,7 +78,6 @@ if st.session_state.data:
         with tab:
             act = st.session_state.data[keys[i]]
             st.subheader(f"🏷️ {act.get('اسم')}")
-            
             c1, c2 = st.columns(2)
             with c1:
                 st.markdown(f"<div class='box box-goal'><b>🎯 الهدف:</b><br>{act.get('الهدف')}</div>", unsafe_allow_html=True)
