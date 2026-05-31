@@ -37,19 +37,11 @@ grade_level = st.select_slider("🎓 المرحلة:", options=["ابتدائي�
 
 if 'data' not in st.session_state: st.session_state.data = None
 
-# Prompt مُطور بـ "الفلسفة التربوية"
+# الـ Prompt
 def get_prompt(lesson, grade, strategy):
     return f"""
     أنت خبير تربوي متخصص في تصميم المناهج. صمم 3 أنشطة إثرائية لدرس '{lesson}' للمرحلة '{grade}' باستخدام استراتيجية '{strategy}'.
-    
-    قواعد تعليمية صارمة:
-    1. ابتعد تماماً عن الأنشطة البحثية التقليدية (مثل: 'ابحث عن معلومات واكتب تقريراً').
-    2. صمم أنشطة تعتمد على مستويات التفكير العليا (التحليل، التقييم، الإبداع).
-    3. 'الخطوات' يجب أن تكون إجرائية وتفاعلية تناسب استراتيجية '{strategy}'.
-    4. 'تقويم' يجب أن يصف كيف سنقيس أداء الطالب أو فهمه العميق أثناء تنفيذ النشاط.
-    5. المخرج JSON فقط. لا أسطر جديدة داخل نصوص القيم.
-    
-    الهيكل المطلوب:
+    القواعد: مخرج JSON فقط، لا أسطر جديدة داخل النصوص، هياكل منظمة.
     {{
         "نشاط1": {{"اسم": "...", "الهدف": "...", "الخطوات": ["خ1", "خ2"], "الأدوات": "...", "تقويم": "..."}},
         "نشاط2": {{"اسم": "...", "الهدف": "...", "الخطوات": ["خ1", "خ2"], "الأدوات": "...", "تقويم": "..."}},
@@ -58,14 +50,18 @@ def get_prompt(lesson, grade, strategy):
     """
 
 if st.button("🚀 توليد أنشطة إثرائية إبداعية"):
-    with st.spinner("جاري تصميم الأنشطة وفق استراتيجية " + strategy + "..."):
+    with st.spinner("جاري تصميم الأنشطة..."):
         try:
             res = client.chat.completions.create(
                 messages=[{"role": "user", "content": get_prompt(lesson_name, grade_level, strategy)}], 
                 model="llama-3.3-70b-versatile"
             )
-            raw = res.choices[0].message.content.replace("```json", "").replace("
-```", "").strip()
+            
+            # معالجة آمنة جداً لمنع SyntaxError
+            raw = res.choices[0].message.content
+            raw = raw.replace("```json", "")
+            raw = raw.replace("```", "")
+            raw = raw.strip()
             
             try:
                 st.session_state.data = json.loads(raw)
