@@ -17,8 +17,8 @@ except:
 st.markdown("""
     <style>
     .stApp { background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); }
-    h1, label { color: #ffffff !important; }
-    .box { padding: 25px; border-radius: 20px; color: #ffffff; margin: 15px 0; line-height: 1.8; border: 1px solid rgba(255,255,255,0.2); }
+    h1, label, h3 { color: #ffffff !important; }
+    .box { padding: 25px; border-radius: 20px; color: #ffffff; margin: 15px 0; line-height: 1.8; font-weight: 500; border: 1px solid rgba(255,255,255,0.2); }
     .box-goal { background: rgba(8, 145, 178, 0.9); } 
     .box-steps { background: rgba(5, 150, 105, 0.9); } 
     .box-tools { background: rgba(124, 58, 237, 0.9); } 
@@ -34,7 +34,7 @@ grade_level = st.select_slider("🎓 المرحلة:", options=["ابتدائي�
 
 if 'data' not in st.session_state: st.session_state.data = None
 
-# الـ Prompt المحسن (بأسلوب Few-Shot Prompting)
+# الـ Prompt المحسن
 def get_prompt(lesson, grade):
     return f"""
     أنت خبير تربوي متخصص في تصميم الأنشطة الإثرائية. 
@@ -42,9 +42,9 @@ def get_prompt(lesson, grade):
     
     تعليمات صارمة:
     1. أخرج النتيجة بصيغة JSON فقط.
-    2. اسم النشاط يجب أن يكون إبداعياً ومهنياً (مثلاً: نشاط المستكشف الصغير، نشاط المحلل التاريخي، نشاط التحدي الذهني، إلخ).
+    2. اسم النشاط يجب أن يكون إبداعياً ومهنياً (مثلاً: نشاط المستكشف، نشاط المحلل، نشاط البودكاست).
     3. 'الخطوات' مصفوفة (Array) تحتوي على خطوات كاملة ومرتبة.
-    4. 'تقويم' نص وصفي لآلية التقويم.
+    4. 'تقويم' نص وصفي لآلية التقويم ولا تتركه فارغاً.
     
     هيكل JSON المطلوب:
     {{
@@ -61,22 +61,28 @@ if st.button("🚀 توليد الأنشطة الإثرائية"):
                 messages=[{"role": "user", "content": get_prompt(lesson_name, grade_level)}], 
                 model="llama-3.3-70b-versatile"
             )
-            raw = res.choices[0].message.content.replace("```json", "").replace("
-```", "").strip()
-            # تنظيف الرموز غير المرئية
+            
+            raw = res.choices[0].message.content
+            raw = raw.replace("```json", "").replace("```", "").strip()
+            
+            # تنظيف الرموز غير المرئية لمنع الأخطاء البرمجية
             clean = re.sub(r'[\x00-\x1f]', '', raw)
             st.session_state.data = json.loads(clean)
+            
         except Exception as e:
-            st.error(f"حدث خطأ: {e}")
+            st.error(f"حدث خطأ في معالجة البيانات: {e}")
 
 # عرض النتائج
 if st.session_state.data:
-    tabs = st.tabs([f"💡 {act.get('اسم', 'نشاط')}" for i, act in enumerate(st.session_state.data.values())])
+    # إنشاء التبويبات بناءً على أسماء الأنشطة الموّلدة
+    keys = list(st.session_state.data.keys())
+    tabs = st.tabs([f"💡 {st.session_state.data[k].get('اسم', 'نشاط')}" for k in keys])
     
     for i, tab in enumerate(tabs):
         with tab:
-            act = list(st.session_state.data.values())[i]
+            act = st.session_state.data[keys[i]]
             st.subheader(f"🏷️ {act.get('اسم')}")
+            
             c1, c2 = st.columns(2)
             with c1:
                 st.markdown(f"<div class='box box-goal'><b>🎯 الهدف:</b><br>{act.get('الهدف')}</div>", unsafe_allow_html=True)
