@@ -3,7 +3,7 @@ import json
 from groq import Groq
 
 # إعداد الصفحة
-st.set_config = st.set_page_config(page_title="مصمم الأنشطة الإثرائي الذكي", layout="wide", page_icon="⚡")
+st.set_page_config(page_title="مصمم الأنشطة الإثرائي الذكي", layout="wide", page_icon="⚡")
 
 # إعداد الـ Client
 try:
@@ -12,14 +12,16 @@ except:
     st.error("يرجى ضبط GROQ_API_KEY في الإعدادات.")
     st.stop()
 
-# التصميم (CSS)
+# تصميم CSS مُحسن لضمان وضوح الألوان
 st.markdown("""
     <style>
     .stApp { background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); }
     .main-header { color: #ffffff; text-align: center; margin-bottom: 30px; }
-    .box-goal { background: #e0f7fa; padding: 15px; border-radius: 10px; color: #006064; height: 100%; }
-    .box-steps { background: #e8f5e9; padding: 15px; border-radius: 10px; color: #1b5e20; height: 100%; }
-    .box-tools { background: #f5f5f5; padding: 15px; border-radius: 10px; color: #424242; height: 100%; }
+    /* مربعات ملونة بتباين عالٍ للوضوح */
+    .box { padding: 20px; border-radius: 15px; height: 100%; color: #ffffff; }
+    .box-goal { background: #0891b2; } /* أزرق سماوي داكن */
+    .box-steps { background: #059669; } /* أخضر زمردي */
+    .box-tools { background: #7c3aed; } /* بنفسجي */
     .footer { text-align: center; margin-top: 50px; color: #cbd5e1; font-weight: bold; }
     </style>
 """, unsafe_allow_html=True)
@@ -29,48 +31,44 @@ st.markdown("<h1 class='main-header'>⚡ مصمم الأنشطة الإثرائ�
 # المدخلات
 col_in1, col_in2 = st.columns([2, 1])
 with col_in1:
-    lesson_name = st.text_input("💡 اسم الدرس:", placeholder="مثال: الدولة العباسية")
+    lesson_name = st.text_input("💡 اسم الدرس:", placeholder="مثال: التركيب الضوئي")
 with col_in2:
     grade_level = st.select_slider("🎓 المرحلة:", options=["ابتدائية", "إعدادية", "ثانوية", "جامعية"])
 
-if 'data' not in st.session_state:
-    st.session_state.data = None
+if 'data' not in st.session_state: st.session_state.data = None
 
 if st.button("🚀 توليد الأنشطة الإثرائية", type="primary"):
     with st.spinner("جاري صياغة الأنشطة..."):
         prompt = f"""
         صمم 3 أنشطة إثرائية لدرس '{lesson_name}' للمرحلة '{grade_level}'.
-        أخرج النتيجة حصراً بصيغة JSON التالية:
+        أخرج النتيجة حصراً بصيغة JSON التالية، وتأكد من ملء كافة الخانات:
         {{
             "نشاط1": {{"الهدف": "...", "الخطوات": "...", "الأدوات": "..."}},
             "نشاط2": {{"الهدف": "...", "الخطوات": "...", "الأدوات": "..."}},
             "نشاط3": {{"الهدف": "...", "الخطوات": "...", "الأدوات": "..."}}
         }}
-        لا تضف أي نص خارج كود الـ JSON.
         """
         try:
-            res = client.chat.completions.create(
-                messages=[{"role": "user", "content": prompt}], 
-                model="llama-3.3-70b-versatile"
-            )
-            content = res.choices[0].message.content
-            # التنظيف الآمن للنص
-            clean_content = content.replace("```json", "").replace("```", "").strip()
-            st.session_state.data = json.loads(clean_content)
+            res = client.chat.completions.create(messages=[{"role": "user", "content": prompt}], model="llama-3.3-70b-versatile")
+            content = res.choices[0].message.content.replace("```json", "").replace("```", "").strip()
+            st.session_state.data = json.loads(content)
         except Exception as e:
-            st.error(f"حدث خطأ في توليد المحتوى: {e}")
+            st.error(f"خطأ في المعالجة: {e}")
 
-# عرض النتائج في Tabs بتنسيق أفقي
+# عرض النتائج في Tabs
 if st.session_state.data:
-    tabs = st.tabs(["نشاط 1", "نشاط 2", "نشاط 3"])
+    # إضافة أيقونات للتبويبات
+    tabs = st.tabs(["💡 نشاط 1", "💡 نشاط 2", "💡 نشاط 3"])
+    
     for i, tab in enumerate(tabs):
         with tab:
             key = f"نشاط{i+1}"
             if key in st.session_state.data:
                 act = st.session_state.data[key]
                 c1, c2, c3 = st.columns(3)
-                with c1: st.markdown(f"<div class='box-goal'><b>🎯 الهدف:</b><br>{act.get('الهدف', '')}</div>", unsafe_allow_html=True)
-                with c2: st.markdown(f"<div class='box-steps'><b>📋 الخطوات:</b><br>{act.get('الخطوات', '')}</div>", unsafe_allow_html=True)
-                with c3: st.markdown(f"<div class='box-tools'><b>🛠 الأدوات:</b><br>{act.get('الدارت', '')}</div>", unsafe_allow_html=True)
+                # استخدام get لتجنب الخطأ وإظهار البيانات كاملة
+                with c1: st.markdown(f"<div class='box box-goal'><b>🎯 الهدف:</b><br>{act.get('الهدف', 'غير متوفر')}</div>", unsafe_allow_html=True)
+                with c2: st.markdown(f"<div class='box box-steps'><b>📋 الخطوات:</b><br>{act.get('الخطوات', 'غير متوفر')}</div>", unsafe_allow_html=True)
+                with c3: st.markdown(f"<div class='box box-tools'><b>🛠 الأدوات:</b><br>{act.get('الأدوات', 'غير متوفر')}</div>", unsafe_allow_html=True)
 
 st.markdown("<div class='footer'>تطوير: عدي عبد الرحمن | ماجستير في المناهج وطرائق التدريس 🎓</div>", unsafe_allow_html=True)
