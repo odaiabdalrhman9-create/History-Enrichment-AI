@@ -3,16 +3,16 @@ import json
 from groq import Groq
 
 # إعداد الصفحة
-st.set_page_config(page_title="مصمم الأنشطة الإثرائي الذكي", layout="wide", page_icon="⚡")
+st.set_config = st.set_page_config(page_title="مصمم الأنشطة الإثرائي الذكي", layout="wide", page_icon="⚡")
 
 # إعداد الـ Client
 try:
     client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 except:
-    st.error("يرجى ضبط GROQ_API_KEY.")
+    st.error("يرجى ضبط GROQ_API_KEY في الإعدادات.")
     st.stop()
 
-# تصميم الواجهة الاحترافية (CSS)
+# التصميم (CSS)
 st.markdown("""
     <style>
     .stApp { background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); }
@@ -33,7 +33,8 @@ with col_in1:
 with col_in2:
     grade_level = st.select_slider("🎓 المرحلة:", options=["ابتدائية", "إعدادية", "ثانوية", "جامعية"])
 
-if 'data' not in st.session_state: st.session_state.data = None
+if 'data' not in st.session_state:
+    st.session_state.data = None
 
 if st.button("🚀 توليد الأنشطة الإثرائية", type="primary"):
     with st.spinner("جاري صياغة الأنشطة..."):
@@ -45,24 +46,31 @@ if st.button("🚀 توليد الأنشطة الإثرائية", type="primary"
             "نشاط2": {{"الهدف": "...", "الخطوات": "...", "الأدوات": "..."}},
             "نشاط3": {{"الهدف": "...", "الخطوات": "...", "الأدوات": "..."}}
         }}
+        لا تضف أي نص خارج كود الـ JSON.
         """
         try:
-            res = client.chat.completions.create(messages=[{"role": "user", "content": prompt}], model="llama-3.3-70b-versatile")
-            content = res.choices[0].message.content.replace("```json", "").replace("
-```", "")
-            st.session_state.data = json.loads(content)
-        except:
-            st.error("حدث خطأ في توليد المحتوى. حاول مجدداً.")
+            res = client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}], 
+                model="llama-3.3-70b-versatile"
+            )
+            content = res.choices[0].message.content
+            # التنظيف الآمن للنص
+            clean_content = content.replace("```json", "").replace("```", "").strip()
+            st.session_state.data = json.loads(clean_content)
+        except Exception as e:
+            st.error(f"حدث خطأ في توليد المحتوى: {e}")
 
 # عرض النتائج في Tabs بتنسيق أفقي
 if st.session_state.data:
     tabs = st.tabs(["نشاط 1", "نشاط 2", "نشاط 3"])
     for i, tab in enumerate(tabs):
         with tab:
-            act = st.session_state.data[f"نشاط{i+1}"]
-            c1, c2, c3 = st.columns(3)
-            with c1: st.markdown(f"<div class='box-goal'><b>🎯 الهدف:</b><br>{act['الهدف']}</div>", unsafe_allow_html=True)
-            with c2: st.markdown(f"<div class='box-steps'><b>📋 الخطوات:</b><br>{act['الخطوات']}</div>", unsafe_allow_html=True)
-            with c3: st.markdown(f"<div class='box-tools'><b>🛠 الأدوات:</b><br>{act['الأدوات']}</div>", unsafe_allow_html=True)
+            key = f"نشاط{i+1}"
+            if key in st.session_state.data:
+                act = st.session_state.data[key]
+                c1, c2, c3 = st.columns(3)
+                with c1: st.markdown(f"<div class='box-goal'><b>🎯 الهدف:</b><br>{act.get('الهدف', '')}</div>", unsafe_allow_html=True)
+                with c2: st.markdown(f"<div class='box-steps'><b>📋 الخطوات:</b><br>{act.get('الخطوات', '')}</div>", unsafe_allow_html=True)
+                with c3: st.markdown(f"<div class='box-tools'><b>🛠 الأدوات:</b><br>{act.get('الدارت', '')}</div>", unsafe_allow_html=True)
 
 st.markdown("<div class='footer'>تطوير: عدي عبد الرحمن | ماجستير في المناهج وطرائق التدريس 🎓</div>", unsafe_allow_html=True)
